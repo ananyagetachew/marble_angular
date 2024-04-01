@@ -1,0 +1,71 @@
+<div nz-row nzType="flex" nzJustify="center">
+  <div nz-col nzSpan="22">
+    <h1 class="mt-5 align-center">Orders</h1>
+  </div>
+</div>
+
+<div nz-row nzType="flex" nzJustify="center">
+  <div nz-col *ngIf="orders?.length" class="align-center">
+    <nz-table
+      #ordersData
+      [nzData]="orders"
+      [nzFrontPagination]="false"
+      [nzShowPagination]="false"
+      nzSize="small"
+    >
+      <thead>
+        <tr>
+          <th></th>
+          <th>Delivery No</th>
+          <th>Customer</th>
+          <th>Delivery Date</th>
+          <th>Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let order of ordersData.data; let i = index"
+          (click)="onOrderClick(order.id)"
+          class="clickable"
+        >
+          <td>
+            {{ i + 1 }}
+          </td>
+          <td>
+            {{ order.order_no | addDToDeliveryNo }}
+          </td>
+          <td>
+            {{ order.company_name }}
+          </td>
+          <td>
+            {{ order.delivery_date | date: "mediumDate" }}
+          </td>
+          <td>
+            {{ order.note | slice: 0:150 }}
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+    <!-- simple pagination with next & previous -->
+    <nz-button-group class="block my-3">
+      <button
+        nz-button
+        nzType="primary"
+        (click)="onPaginatePrevious()"
+        [disabled]="currentPaginationIndex === 1"
+      >
+        <i nz-icon type="left"></i>Previous
+      </button>
+      <button
+        nz-button
+        nzType="primary"
+        (click)="onPaginateNext()"
+        [disabled]="
+          currentPaginationIndex === lastPaginationIndex
+        "
+      >
+        Next<i nz-icon type="right"></i>
+      </button>
+    </nz-button-group>
+  </div>
+</div>

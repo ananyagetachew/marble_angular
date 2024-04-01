@@ -1,0 +1,153 @@
+<div class="unprintable">
+  <nz-header class="bg-white">
+    <h2 style="display: inline-block">Firdows</h2>
+    <ul *ngIf="authService.isAuthenticated()" nz-menu [nzMode]="'horizontal'" class="bg-white"
+      style="line-height: 64px;">
+      <!-- display links that only correspond to an admin user ( links are displayed in the header section of every page) -->
+      <ng-container *ngIf="authService.getUserDepartmentId() == 1">
+        <li nz-menu-item [ngClass]="
+            this.router.url.includes('admin/stock-transfer')
+              ? 'ant-menu-item-selected'
+              : ''
+          ">
+          <a routerLink="admin/stock-transfer">Stocks</a>
+        </li>
+      </ng-container>
+
+      <!-- display links that only correspond to a sales user ( links are displayed in the header section of every page) -->
+      <ng-container *ngIf="authService.getUserDepartmentId() == 2">
+        <li nz-menu-item [ngClass]="
+            this.router.url === '/sales' ? 'ant-menu-item-selected' : ''
+          ">
+          <a routerLink="/sales">Import</a>
+        </li>
+        <li nz-menu-item [ngClass]="
+            this.router.url.includes('/sales/proforma')
+              ? 'ant-menu-item-selected'
+              : ''
+          ">
+          <a routerLink="/sales/proformas">Proformas</a>
+        </li>
+        <li nz-menu-item [ngClass]="
+            this.router.url.includes('/sales/deliver')
+              ? 'ant-menu-item-selected'
+              : ''
+          ">
+          <a routerLink="/sales/deliveries">Deliveries</a>
+        </li>
+        <li nz-menu-item [ngClass]="
+            this.router.url.includes('/sales/production')
+              ? 'ant-menu-item-selected'
+              : ''
+          ">
+          <a routerLink="/sales/productions">Productions</a>
+        </li>
+        <li nz-menu-item [ngClass]="
+            this.router.url.includes('/sales/filter')
+              ? 'ant-menu-item-selected'
+              : ''
+          ">
+          <a routerLink="/sales/filter">Filter</a>
+        </li>
+        <li nz-menu-item [ngClass]="
+            this.router.url.includes('/sales/report')
+              ? 'ant-menu-item-selected'
+              : ''
+          ">
+          <a routerLink="/sales/report">Report</a>
+        </li>
+      </ng-container>
+
+      <!-- lets only display links on the header that correspond to department number 3(factory loader) -->
+      <ng-container *ngIf="authService.getUserDepartmentId() == 3">
+        <li nz-menu-item [ngClass]="
+            this.router.url === '/factoryloader' ? 'ant-menu-item-selected' : ''
+          ">
+          <a routerLink="/factoryloader">Orders</a>
+        </li>
+        <li nz-menu-item [ngClass]="
+            this.router.url.includes('/factoryloader/deliver')
+              ? 'ant-menu-item-selected'
+              : ''
+          ">
+          <a routerLink="/factoryloader/delivereds">Delivered Orders</a>
+        </li>
+        <li nz-menu-item [ngClass]="
+            this.router.url.includes('/factoryloader/filter')
+              ? 'ant-menu-item-selected'
+              : ''
+          ">
+          <a routerLink="/factoryloader/filter">Filter</a>
+        </li>
+      </ng-container>
+
+      <!-- lets only display links on the header that correspond to department number 4(stock manager) -->
+      <ng-container *ngIf="authService.getUserDepartmentId() == 4">
+        <li nz-menu-item [ngClass]="
+            this.router.url === '/stockmanager' ? 'ant-menu-item-selected' : ''
+          ">
+          <a routerLink="/stockmanager">Add to Stock</a>
+        </li>
+        <li nz-menu-item [ngClass]="
+            this.router.url.includes('/stockmanager/stock')
+              ? 'ant-menu-item-selected'
+              : ''
+          ">
+          <a routerLink="/stockmanager/stock">Stock</a>
+        </li>
+      </ng-container>
+
+      <!-- lets only display links on the header that correspond to department number 5(production manager) -->
+      <ng-container *ngIf="authService.getUserDepartmentId() == 5">
+        <li nz-menu-item [ngClass]="
+            this.router.url.includes('/productionmanager/filter')
+              ? 'ant-menu-item-selected'
+              : ''
+          ">
+          <a routerLink="/productionmanager/filter">Filter</a>
+        </li>
+        <li nz-menu-item [ngClass]="
+            this.router.url.includes('/productionmanager/report')
+              ? 'ant-menu-item-selected'
+              : ''
+          ">
+          <a routerLink="/productionmanager/report">Report</a>
+        </li>
+      </ng-container>
+
+      <!-- lets only display links on the header that correspond to department number 6(finance manager) -->
+      <ng-container *ngIf="authService.getUserDepartmentId() == 6">
+        <li nz-menu-item [ngClass]="
+            this.router.url === '/financemanager'
+              ? 'ant-menu-item-selected'
+              : ''
+          ">
+          <a routerLink="/financemanager">Dashboard</a>
+        </li>
+        <li nz-menu-item [ngClass]="
+            this.router.url.includes('/financemanager/deliveries')
+              ? 'ant-menu-item-selected'
+              : ''
+          ">
+          <a routerLink="/financemanager/deliveries">Deliveries</a>
+        </li>
+        <li nz-menu-item [ngClass]="
+            this.router.url.includes('/financemanager/delivereds')
+              ? 'ant-menu-item-selected'
+              : ''
+          ">
+          <a routerLink="/financemanager/delivereds">Delivereds</a>
+        </li>
+      </ng-container>
+
+      <nz-dropdown>
+        <a nz-dropdown>
+          {{ authService.getUserName() }}<i nz-icon type="down"></i>
+        </a>
+        <ul nz-menu nzSelectable>
+          <li nz-menu-item><a (click)="authService.logout()">Logout</a></li>
+        </ul>
+      </nz-dropdown>
+    </ul>
+  </nz-header>
+</div>

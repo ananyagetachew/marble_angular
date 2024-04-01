@@ -1,0 +1,98 @@
+<div nz-row nzType="flex" class="my-5" nzJustify="center">
+  <h2>Filter Items Inside </h2>
+  <nz-button-group *ngIf="!shouldOnlyShowProductionOrderFilter">
+    <button nz-button [nzType]="isFilterTypeOnProductionOrders?'':'primary'"
+            (click)="onFilterTypeChange('delivery_items')">Delivery
+    </button>
+    <button nz-button [nzType]="isFilterTypeOnProductionOrders ? 'primary': ''"
+            (click)="onFilterTypeChange('production_items')">Production
+    </button>
+  </nz-button-group>
+  <h2 *ngIf="shouldOnlyShowProductionOrderFilter" style="padding: 0 4px;">Production</h2>
+  <h2> That Haven't Been Processed</h2>
+  <div nz-col nzSpan="20">
+    <h4 class="align-center">Date [ {{ currentDate | date: 'mediumDate' }} ]</h4>
+  </div>
+  <nz-input-group nzCompact class="align-center">
+    <!-- loading indicator -->
+    <nz-spin [nzSpinning]="isLoading" [nzSize]="'large'">
+      <div class="loading-indicator"></div>
+    </nz-spin>
+    <nz-range-picker class="my-3" [nzFormat]="'yyyy-MM-dd'" [(ngModel)]="this.dateRange"></nz-range-picker>
+    <br/>
+    <input #company_name type="text" nz-input style="width:15%;" placeholder="Customer Name"/>
+    <nz-select #deliveryNo style="width: 15%;" [(ngModel)]="deliveryNosDropDown">
+      <nz-option [nzLabel]="'Choose Delivery No'" [nzValue]="''"></nz-option>
+      <nz-option *ngFor="let deliveryNo of deliveryNos" [nzLabel]="deliveryNo.order_no" [nzValue]="deliveryNo.id">
+      </nz-option>
+    </nz-select>
+    <nz-select #productID style="width: 15%;" [(ngModel)]="productsDropDown">
+      <nz-option [nzLabel]="'Choose Product Type'" [nzValue]="''"></nz-option>
+      <nz-option *ngFor="let product of products" [nzLabel]="product.name" [nzValue]="product.id"></nz-option>
+    </nz-select>
+    <input #length type="number" step="0.01" nz-input style="width:10%;" placeholder="Length">
+    <input #width type="number" step="0.01" nz-input style="width:10%;" placeholder="Width">
+    <input #thick type="number" step="0.01" nz-input style="width:10%;" placeholder="Thickness">
+    <button nz-button nzType="primary"
+            (click)="onFilter({ company_name: company_name.value, delivery_no: deliveryNo.value,
+      product_id: productID.value, length: length.value, width: width.value, thick: thick.value})">Search
+    </button>
+  </nz-input-group>
+
+  <!-- results table -->
+  <div class="my-5">
+    <h4 class="align-center">A Total of {{ items.length }} Items</h4>
+    <h4 class="align-center">With M2 Total of {{ m2TotalForQeri | number: '1.2-2' }}</h4>
+
+    <div nz-row nzType="flex" nzJustify="center">
+      <button class="my-3" nz-button [nzType]="'primary'" [disabled]="!items.length"
+              (click)="exportAsXLSX(items)">Export to Excel <i nz-icon [type]="'file-excel'" [theme]="'fill'"></i>
+      </button>
+    </div>
+
+    <nz-table [nzData]='items' [nzFrontPagination]="false" [nzShowPagination]="false" nzSize="small"
+              [nzBordered]="true">
+      <thead (nzSortChange)="sort($event)">
+      <tr>
+        <th>Customer</th>
+        <th>Delivery No.</th>
+        <th>Product</th>
+        <th nzShowSort nzSortKey="length">Length</th>
+        <th nzShowSort nzSortKey="width">Width</th>
+        <th nzShowSort nzSortKey="thick">Thick</th>
+        <th nzShowSort nzSortKey="original_pcs">Pcs Original</th>
+        <th>Pcs {{ this.isFilterTypeOnProductionOrders ? 'Delivered' : 'Sent to Production' }}</th>
+        <th nzShowSort nzSortKey="pcs">Pcs Balance</th>
+        <th *ngIf="isFilterTypeOnProductionOrders" nzShowSort nzSortKey="in_stock_pcs" class="emphasis">Pcs In Stock
+        </th>
+        <th *ngIf="isFilterTypeOnProductionOrders" title="ምን ያህል ማምረት እንዳለብን">Pcs (ቀሪ)</th>
+        <th *ngIf="isFilterTypeOnProductionOrders" title="ምን ያህል ማምረት እንዳለብን">M2 ለቀሪ Pcs</th>
+        <th>Remark</th>
+        <th>Created</th>
+      </tr>
+      </thead>
+      <tbody>
+      <ng-container *ngFor="let data of items">
+        <tr>
+          <td>{{ data.company_name }}</td>
+          <td>{{ data.order_no | addDToDeliveryNo }}</td>
+          <td>{{ data.name }}</td>
+          <td>{{ data.length }}</td>
+          <td>{{ data.width }}</td>
+          <td>{{ data.thick }}</td>
+          <td>{{ data.original_pcs }}</td>
+          <td>{{ data.original_pcs - data.pcs }}</td>
+          <td>{{ data.pcs }}</td>
+          <td *ngIf="isFilterTypeOnProductionOrders">{{ data.in_stock_pcs }}</td>
+          <td *ngIf="isFilterTypeOnProductionOrders">{{ data.in_stock_pcs - data.pcs | addPlusSymbolToNumbers }}</td>
+          <td>
+            {{ data.length * (data.in_stock_pcs - data.pcs) * data.width | number: '1.2-2' }}
+          </td>
+          <td>{{ data.remark }}</td>
+          <td>{{ data.created_at | date: "mediumDate" }}</td>
+        </tr>
+      </ng-container>
+      </tbody>
+    </nz-table>
+  </div>
+</div>

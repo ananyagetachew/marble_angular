@@ -1,0 +1,90 @@
+/* You can add global styles to this file, and also import other style files */
+
+nz-header {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.bg-white {
+  background-color: white;
+}
+
+.emphasis {
+  color: #d80000 !important;
+  font-weight: bold;
+}
+
+.fg-app-color {
+  background-color: white;
+  color: #1890ff;
+}
+
+ul[nz-menu] {
+  float: right;
+}
+
+.align-center {
+  text-align: center;
+}
+
+.float-right {
+  float: right;
+}
+
+.block {
+  display: block;
+}
+
+.clickable:hover {
+  cursor: pointer;
+}
+
+@media print {
+  body {
+    zoom: 50%;
+  }
+  thead {
+    break-inside: auto;
+  }
+  .unprintable {
+    display: none;
+  }
+}
+
+/*
+
+    positioning helpers with margin 5 and 3 (5 => 3rem and 3 => 1.5rem)
+    bootstrap style ;)
+
+*/
+
+.my-5 {
+  margin: 3rem 0 3rem 0;
+}
+
+.my-3 {
+  margin: 1.5rem 0 1.5rem 0;
+}
+
+.mt-5 {
+  margin-top: 1.5rem;
+}
+
+.mt-3 {
+  margin-top: 3rem;
+}
+
+.mt-1 {
+  margin-top: 1rem;
+}
+
+.mx-5 {
+  margin: 0 3rem 0 3rem;
+}
+
+.mx-3 {
+  margin: 0 1.5rem 0 1.5rem;
+}
+
+.ml-3 {
+  margin-left: 1.5rem;
+}

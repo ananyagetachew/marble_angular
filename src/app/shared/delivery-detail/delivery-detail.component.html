@@ -1,0 +1,12 @@
+<div nz-row nzType="flex" nzJustify="center" class="my-3">
+  <div nz-col nzSpan="22">
+    <app-order-detail-table
+      [mode]="'delivery'"
+      [editable]="true"
+      [inputOrder]="order"
+      [inputPackages]="packages"
+      [inputItems]="items"
+    >
+    </app-order-detail-table>
+  </div>
+</div>

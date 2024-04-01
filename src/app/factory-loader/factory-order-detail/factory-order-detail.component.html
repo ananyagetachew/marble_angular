@@ -1,0 +1,14 @@
+<div nz-row nzType="flex" nzJustify="center" class="my-3">
+  <div nz-col nzSpan="22" *ngIf="packages?.length">
+
+    <app-order-detail-table 
+    [mode]="'delivery'" 
+    [submode]="'factory-loader-detail'" 
+    [editable]="false" 
+    [hidePricing]="true"
+    [hideIssuedDate]="true"
+      [inputOrder]="order" [inputPackages]="packages" [inputItems]="items">
+    </app-order-detail-table>
+
+  </div>
+</div>

@@ -1,0 +1,41 @@
+<div nz-row nzType="flex" nzJustify="center" class="my-3">
+  <div nz-col nzSpan="22" *ngIf="packages?.length">
+
+    <app-order-detail-table [mode]="'production'" [hidePricing]="false" [hideIssuedDate]="true" [editable]="false"
+      [inputOrder]="order" [inputPackages]="packages" [inputItems]="items"></app-order-detail-table>
+
+    <div style="display: flex;justify-content: space-evenly;">
+      <div>
+        <h3 style="padding: .3rem 8rem .3rem .3rem;color: black; background: #eee;">Issued By</h3>
+        <p style="color: black;"> {{ "Name: " + order.issued_by }}</p>
+        <p style="color: black;">Signature: </p>
+      </div>
+      <div>
+        <h3 style="padding: .3rem 8rem .3rem .3rem;color: black; background: #eee;">Approved By</h3>
+        <p style="color: black;">{{ "Name: " + order.approved_by}}</p>
+        <p style="color: black;">Signature: </p>
+      </div>
+      <div>
+        <h3 style="padding: .3rem 8rem .3rem .3rem;color: black; background: #eee;">Recieved By</h3>
+        <p style="color: black;">{{ "Name: " + order.recieved_by }}</p>
+        <p style="color: black;">Signature: </p>
+      </div>
+    </div>
+
+    <div style="display: flex;justify-content: space-evenly;">
+      <div>
+        <h3 style="padding: .3rem 8rem .3rem .3rem;color: black; background: #eee;">Driver Plate No</h3>
+        <p style="color: black;">{{ order.driver_plate_no }}</p>
+      </div>
+      <div>
+        <h3 style="padding: .3rem 8rem .3rem .3rem;color: black; background: #eee;">Driver ID No</h3>
+        <p style="color: black;">{{ order.driver_id_no }}</p>
+      </div>
+      <div>
+        <h3 style="padding: .3rem 8rem .3rem .3rem;color: black; background: #eee;">Driver Name</h3>
+        <p style="color: black;">{{ order.driver_name }}</p>
+      </div>
+    </div>
+
+  </div>
+</div>

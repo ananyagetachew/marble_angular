@@ -1,0 +1,80 @@
+<nz-spin [nzSpinning]="isLoading" [nzSize]="'large'">
+  <div nz-row nzType="flex" nzJustify="center">
+    <div nz-col nzSpan="18" class="align-center">
+      <input style="display: none;" id="delivery-import" type="file" (change)="onFileChange($event)" multiple="false" />
+      <input style="display: none;" id="proforma-import" type="file" (change)="onFileChange($event)" multiple="false" />
+
+      <button (click)="onImportDeliveryClick()" nz-button nzType="primary" class="my-5">
+        Import From Excel: <b>Delivery No</b>
+      </button>
+      <button (click)="onImportProformaClick()" nz-button nzType="primary" class="ml-3">
+        Import From Excel: <b>Proforma No</b>
+      </button>
+    </div>
+  </div>
+
+  <h2 class="align-center">Manually Create Order</h2>
+
+  <div nz-row nzType="flex" nzJustify="center" class="my-3">
+    <nz-radio-group nzName="orderType" [(ngModel)]="manuallyCreating">
+      <label nz-radio nzValue="proforma">Proforma</label>
+      <label nz-radio nzValue="delivery">Delivery</label>
+    </nz-radio-group>
+  </div>
+
+  <div nz-row nzType="flex" nzJustify="center" [hidden]="!this.manuallyCreating">
+    <input #company_name type="text" nz-input style="width:20%;" placeholder="Customer Name" />
+    <textarea #note type="text" nz-input style="width:30%;" placeholder="Note"></textarea>
+    <span>
+      {{ this.manuallyCreating === "delivery" ? "Delivery" : "Validity" }} Date
+      Count(In Days)</span>
+    <nz-input-number #numberOfDays style="width: 10%;" [nzMin]="1"></nz-input-number>
+
+    <span>FsNo.</span>
+    <input #fsNo style="width: 10%;" type="text" nz-input placeholder="FsNo" />
+    <button nz-button nzType="primary" (click)="
+        this.submitManuallyCreatedOrder({
+          company_name: company_name.value,
+          note: note.value,
+          numberOfDays: numberOfDays.value,
+          fsno: fsNo
+        })
+      " [disabled]="!numberOfDays.value || !company_name.value">
+      Add
+    </button>
+  </div>
+
+  <div nz-row nzType="flex" nzJustify="center" class="my-3">
+    <div nz-col nzSpan="22" *ngIf="shouldDisplayPreview && packages?.length">
+      <app-order-detail-table [mode]="'import_preview'" [editable]="false" [inputOrder]="order"
+        [inputPackages]="packages" [inputItems]="items" [hideIssuedDate]="true">
+      </app-order-detail-table>
+    </div>
+  </div>
+
+  <!-- form for inserting validity date of proforma no -->
+  <div *ngIf="shouldDisplayPreview && !isImportDelivery" nz-row nzType="flex" nzJustify="left" class="my-5">
+    <h2><b>Save To System</b><small></small></h2>
+    <nz-input-group nzCompact>
+      <span>Validity Date Count(In Days)</span>
+      <nz-input-number #numberOfDays style="width: 10%;" [nzMin]="1"></nz-input-number>
+      <button nz-button nzType="primary" (click)="submitImportedProformaExcel(numberOfDays.value)"
+        [disabled]="!numberOfDays.value">
+        Save To System
+      </button>
+    </nz-input-group>
+  </div>
+
+  <!-- form for inserting delivery date of delivery no -->
+  <div *ngIf="shouldDisplayPreview && isImportDelivery" nz-row nzType="flex" nzJustify="left" class="my-5">
+    <h2><b>Save To System</b><small></small></h2>
+    <nz-input-group nzCompact>
+      <span>Delivery Date Count(In Days)</span>
+      <nz-input-number #numberOfDays style="width: 10%;" [nzMin]="1"></nz-input-number>
+      <button nz-button nzType="primary" (click)="submitImportedDeliveryExcel(numberOfDays.value)"
+        [disabled]="!numberOfDays.value">
+        Save To System
+      </button>
+    </nz-input-group>
+  </div>
+</nz-spin>

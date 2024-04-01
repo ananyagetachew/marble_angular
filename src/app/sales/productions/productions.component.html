@@ -1,0 +1,75 @@
+<div nz-row nzType="flex" nzJustify="center">
+  <div nz-col nzSpan="22">
+    <h1 class="mt-5 align-center">Productions</h1>
+  </div>
+</div>
+
+<div nz-row nzType="flex" nzJustify="center">
+  <div nz-col *ngIf="productions?.length" class="align-center">
+    <nz-table
+      #productionsData
+      [nzData]="productions"
+      [nzFrontPagination]="false"
+      [nzShowPagination]="false"
+      nzSize="small"
+    >
+      <thead>
+        <tr>
+          <th></th>
+          <th>Delivery No</th>
+          <th>Customer</th>
+          <th>Issued Date</th>
+          <th>Delivery Date</th>
+          <th>Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let production of productionsData.data; let i = index"
+          (click)="onOrderClick(production.original_order_id)"
+          class="clickable"
+        >
+          <td>
+            {{ i + 1 }}
+          </td>
+          <td>
+            {{ production.order_no | addDToDeliveryNo }}
+          </td>
+          <td>
+            {{ production.company_name }}
+          </td>
+          <td>
+            {{ production.created_at | date: "mediumDate" }}
+          </td>
+          <td>
+            {{ production.delivery_date | date: "mediumDate" }}
+          </td>
+          <td>
+            {{ production.note | slice: 0:150 }}
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+    <!-- simple pagination with next & previous -->
+    <nz-button-group class="block my-3">
+      <button
+        nz-button
+        nzType="primary"
+        (click)="onPaginatePrevious()"
+        [disabled]="currentPaginationIndex === 1"
+      >
+        <i nz-icon type="left"></i>Previous
+      </button>
+      <button
+        nz-button
+        nzType="primary"
+        (click)="onPaginateNext()"
+        [disabled]="
+          currentPaginationIndex === lastPaginationIndex
+        "
+      >
+        Next<i nz-icon type="right"></i>
+      </button>
+    </nz-button-group>
+  </div>
+</div>

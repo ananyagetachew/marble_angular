@@ -1,0 +1,75 @@
+<div nz-row nzType="flex" class="my-5" nzJustify="center">
+  <nz-radio-group [(ngModel)]="reportTable" [nzButtonStyle]="'solid'">
+    <label nz-radio-button nzValue="delivery_orders" title="ወደ production ያልተላኩ!">Delivery</label>
+    <label nz-radio-button nzValue="delivered_orders" title="ከፋብሪካ፤ተጭነው፤የወጡ!">Delivered</label>
+  </nz-radio-group>
+  <nz-input-group nzCompact class="my-3 align-center">
+    <!-- loading indicator -->
+    <nz-spin [nzSpinning]="isLoading" [nzSize]="'large'">
+      <div class="loading-indicator"></div>
+    </nz-spin>
+
+    <input [(ngModel)]="companyName" type="text" nz-input style="width:15%;" placeholder="Customer Name"/>
+    <nz-range-picker [nzFormat]="'yyyy-MM-dd'" [(ngModel)]="this.dateRange"></nz-range-picker>
+    <button nz-button nzType="primary" (click)="onSearchClick()">Search</button>
+  </nz-input-group>
+
+  <ng-container *ngIf="this.orders">
+    <div nz-col nzSpan="20" class="align-center">
+      <p>Total of <b>{{ this.orders.length }}</b> Order(s)</p>
+    </div>
+  </ng-container>
+
+  <div nz-row nzType="flex" nzJustify="center">
+    <div nz-col *ngIf="orders?.length" class="align-center">
+
+      <div nz-row nzType="flex" nzJustify="center">
+        <button class="my-3" nz-button [nzType]="'primary'" [disabled]="!orders.length"
+                (click)="exportAsXLSX(orders)">Export to Excel <i nz-icon [type]="'file-excel'" [theme]="'fill'"></i></button>
+      </div>
+
+      <nz-table #ordersData [nzData]="orders" [nzFrontPagination]="false" [nzShowPagination]="false" nzSize="small">
+        <thead (nzSortChange)="sort($event)">
+        <tr>
+          <th></th>
+          <th>Order No</th>
+          <th>Customer Name</th>
+          <th>{{ reportTable === 'delivered_orders' ? 'Delivered On' : 'Ordered On'}}</th>
+          <th>Delivery Date</th>
+          <th nzShowSort nzSortKey="total_pcs">Total Pcs</th>
+          <th nzShowSort nzSortKey="total_m2">Total M2</th>
+          <th>Note</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let order of ordersData.data; let i = index" (click)="onOrderClick(order.id)" class="clickable">
+          <td>
+            {{ i + 1 }}
+          </td>
+          <td>
+            {{ order.order_no | addDToDeliveryNo }}
+          </td>
+          <td>
+            {{ order.company_name }}
+          </td>
+          <td>
+            {{ order.created_at | date: "mediumDate" }}
+          </td>
+          <td>
+            {{ order.delivery_date | date: "mediumDate" }}
+          </td>
+          <td>
+            {{ order.total_pcs }}
+          </td>
+          <td>
+            {{ order.total_m2 | number: '1.2-2' }}
+          </td>
+          <td>
+            {{ order.note | slice: 0:75 }}
+          </td>
+        </tr>
+        </tbody>
+      </nz-table>
+    </div>
+  </div>
+</div>

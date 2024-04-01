@@ -1,0 +1,615 @@
+<div nz-row nzType="flex" nzJustify="center">
+  <div nz-col nzSpan="20">
+    <h1 class="mt-5 align-center">Firdows General Import, Export and Commission Agent PLC</h1>
+    <h4 class="align-center">Date [ {{ currentDate | date: 'mediumDate' }} ]</h4>
+    <ul>
+      <li class="emphasis" *ngIf="!hideIssuedDate">Issued Date: {{ order?.created_at | date: 'mediumDate' }}</li>
+      <li *ngIf="mode !== 'import_preview'"><span
+          [innerHTML]="mode === 'proforma' ? 'Proforma No:' : 'Delivery No:'"></span>
+        <span class="emphasis" *ngIf="mode === 'proforma' && order"> {{ order.order_no | addPToProformaNo }}</span>
+        <span class="emphasis" *ngIf="mode !== 'proforma' && order"> {{ order.order_no | addDToDeliveryNo }}
+          <em *ngIf="order.proforma_no"> --- {{ order.proforma_no | addPToProformaNo }} </em> </span>
+      </li>
+      <li>Customer: {{ order?.company_name }}</li>
+      <!-- only displayed for proforma order -->
+      <li *ngIf="mode === 'proforma'">Validity Date: {{ order?.validity_date | date: 'mediumDate' }}</li>
+      <!-- only displayed for delivery order -->
+      <li *ngIf="mode === 'delivery'">Delivery Date: {{ order?.delivery_date | date: 'mediumDate' }}</li>
+      <!-- for the sole purpose of displaying deliver date in the history section of sent to production -->
+      <li *ngIf="mode === 'production'">Delivery Date: {{ order?.delivery_date | date:
+          'mediumDate' }}</li>
+      <li>fsno: <b>{{ order?.fsno }}</b></li>
+      <li>Address: Bole Medhanialem Redwan Building, +251 911223231, +251 91123268</li>
+    </ul>
+    <div class="unprintable">
+      <button *ngIf="mode !== 'import_preview'" nz-button nzType="primary" class="my-3" onclick="window.print()">Print
+      </button>
+
+      <button *ngIf="mode === 'delivery' && submode !== 'factory-loader-detail'" nz-button nzType="primary" class="ml-3"
+        (click)="onSendAllToProduction()">Send
+        All To Production
+      </button>
+
+      <nz-affix *ngIf="editable">
+        <button nz-button [nzType]="'primary'" class="unprintable ml-3 my-3" (click)="onPersistEditedData()">
+          <span>Persist Changes To System</span>
+        </button>
+      </nz-affix>
+
+      <div *ngIf="mode === 'delivery'" class="mx-3" style='display: inline;'>
+        <nz-progress [nzPercent]="((selected_items.length / items?.length) * 100 || 0) | number: '1.1-1'"
+          nzType="circle"></nz-progress>
+        <ul style='display: inline-block;'>
+          <li [innerHTML]="'Total of <span class=\'emphasis\'>' + items?.length + '</b> Items'"></li>
+          <li [innerHTML]="'From <span class=\'emphasis\'>' + packages?.length + '</b> Processed Goods'"></li>
+          <li [innerHTML]="'Selected <span class=\'emphasis\'>' + selected_items.length + '</b> Items to be Processed'">
+          </li>
+          em
+        </ul>
+        <ul class="mx-3" style='display: inline-block;'>
+          <li *ngIf="selectedPackageNItemcountDisplayData.length" class="emphasis">Selected Goods Are:</li>
+          <li *ngFor="let item of selectedPackageNItemcountDisplayData" class="emphasis">
+            {{
+              item[1] + ' ' + item[0] + ' (s)'
+            }}
+          </li>
+        </ul>
+        <ng-container *ngIf="selectedPackageNItemcountDisplayData.length">
+          <div>
+            <span class="emphasis">Selected Items Include: </span>
+            <ol>
+              <li *ngFor="let packageNameAndNumberOfPiece of packageNameAndNumberOfPieces()">
+                {{packageNameAndNumberOfPiece}}
+              </li>
+            </ol>
+          </div>
+        </ng-container>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<nz-table *ngFor="let package of packages; let j = index; last as isLastPackage" [nzData]='packages'
+  [nzFrontPagination]="false" [nzShowPagination]="false" nzSize="small" [nzBordered]="true">
+  <thead (nzSortChange)="sort($event)">
+    <tr>
+      <th *ngIf="(mode === 'delivery')" nzShowExpand></th>
+
+      <!-- for some odd reason [hidden] is removing it from dom so put empty th to make up for it -->
+      <th *ngIf="(mode === 'delivery')" nzShowCheckbox [(nzChecked)]="allChecked" [nzIndeterminate]="indeterminate"
+        (nzCheckedChange)="checkAll($event)"></th>
+      <th>{{ package.name }}</th>
+      <th nzShowSort nzSortKey="length">Length</th>
+      <th nzShowSort nzSortKey="width">Width</th>
+      <th nzShowSort nzSortKey="thick">Thck</th>
+      <th nzShowSort nzSortKey="pcs">Pcs</th>
+      <th>Remark</th>
+      <th>ML</th>
+      <th>M2</th>
+      <th *ngIf="!hidePricing">Unit Price</th>
+      <th *ngIf="!hidePricing">Calc.</th>
+      <th class="unprintable" *ngIf="editable">Edit</th>
+    </tr>
+  </thead>
+  <tbody>
+    <ng-container *ngFor="let data of filterProformaItemsWithPackageId(package.id); let i = index;">
+      <tr>
+        <td *ngIf="(mode === 'delivery')" nzShowExpand [(nzExpand)]="data.expand_detail"></td>
+        <td *ngIf="(mode === 'delivery')" nzShowCheckbox [(nzChecked)]="data.sent_to_production"
+          [nzDisabled]="(data.pcs - data.previously_processed_pcs <= 0) || (submode === 'factory-loader-detail' && !data.in_stock_pcs || data.in_stock_pcs <= 0)"
+          (nzCheckedChange)="refreshStatus()"></td>
+        <td>{{ i + 1 }}</td>
+
+        <td>
+          <div class="editable-cell">
+            <div class="editable-cell-text-wrapper">
+              <ng-container *ngIf="!editCache[data.id]?.edit">
+                {{data.length | number: '1.2-2'}}
+              </ng-container>
+              <ng-container *ngIf="editCache[data.id]?.edit">
+                <nz-input-number style="width: 5rem;" [nzStep]="0.01" [(ngModel)]="editCache[data.id].data.length"
+                  [nzMin]="0"></nz-input-number>
+              </ng-container>
+            </div>
+          </div>
+        </td>
+
+        <td>
+          <ng-container *ngIf="!editCache[data.id]?.edit">
+            {{data.width | number: '1.2-2'}}
+          </ng-container>
+          <ng-container *ngIf="editCache[data.id]?.edit">
+            <nz-input-number style="width: 5rem;" [nzStep]="0.01" [(ngModel)]="editCache[data.id].data.width"
+              [nzMin]="0"></nz-input-number>
+          </ng-container>
+        </td>
+
+        <td>
+          <ng-container *ngIf="!editCache[data.id]?.edit">
+            {{data.thick | number: '1.2-2'}}
+          </ng-container>
+          <ng-container *ngIf="editCache[data.id]?.edit">
+            <nz-input-number style="width: 5rem;" [nzStep]="0.01" [(ngModel)]="editCache[data.id].data.thick"
+              [nzMin]="0"></nz-input-number>
+          </ng-container>
+        </td>
+
+        <td>
+          <ng-container *ngIf="!editCache[data.id]?.edit">
+            {{data.pcs}}
+            <nz-input-number *ngIf="data.sent_to_production" [(ngModel)]="selectedItemNPieceCache[data.id].pcs"
+              [nzMax]="data.in_stock_pcs <= (data.pcs - data.previously_processed_pcs) ? data.in_stock_pcs : (data.pcs - data.previously_processed_pcs)"
+              [nzMin]="0" style="width: 4.17rem;float: right;" (ngModelChange)="refreshStatus()"></nz-input-number>
+          </ng-container>
+          <ng-container *ngIf="editCache[data.id]?.edit">
+            <nz-input-number style="width: 5rem;" [nzMin]="0" [(ngModel)]="editCache[data.id].data.pcs">
+            </nz-input-number>
+          </ng-container>
+        </td>
+
+        <td>
+          <ng-container *ngIf="!editCache[data.id]?.edit">
+            {{data.remark}}
+          </ng-container>
+          <ng-container *ngIf="editCache[data.id]?.edit">
+            <input type="text" nz-input [(ngModel)]="editCache[data.id].data.remark">
+          </ng-container>
+        </td>
+
+        <td [innerHTML]="ml_total[j][i] | number: '1.2-2'"></td>
+
+        <td [innerHTML]="m2_total[j][i] | number: '1.2-2'"></td>
+
+        <td></td>
+        <td></td>
+
+        <td *ngIf="editable" class="unprintable">
+          <div class="editable-row-operations">
+            <ng-container *ngIf="!editCache[data.id]?.edit">
+              <a (click)="startEdit(data.id)"><i nz-icon [type]="'edit'" [theme]="'fill'"></i></a>
+            </ng-container>
+            <ng-container *ngIf="editCache[data.id]?.edit">
+              <a (click)="saveEdit(data.id)">Save</a>
+              <nz-divider nzType="vertical"></nz-divider>
+              <nz-popconfirm [nzTitle]="'Sure to cancel?'" (nzOnConfirm)="cancelEdit(data.id)">
+                <a nz-popconfirm>Cancel</a>
+              </nz-popconfirm>
+            </ng-container>
+          </div>
+        </td>
+
+      </tr>
+      <tr [nzExpand]="data.expand_detail">
+        <td></td>
+        <td colspan="20">
+          <b>Total</b> Previously Processed Pieces: {{
+          data.previously_processed_pcs
+        }}
+          <br>
+          Pieces <b>Available</b> For Order: {{
+          data.pcs - data.previously_processed_pcs
+        }}
+        </td>
+      </tr>
+    </ng-container>
+
+    <tr>
+      <td [attr.colspan]="mode === 'delivery'? 8: 6">Bullnose</td>
+      <td colspan="2">
+        <b>{{
+          calculateSummationOfArray(ml_total[j]) | number: '1.2-2'
+        }}</b>
+      </td>
+
+      <ng-container *ngIf="!hidePricing">
+
+        <td>
+          <ng-container *ngIf="!editCacheForPackageProperties[package.id]?.edit">
+            {{
+            package.bullnose | number: '1.2-2'
+          }}
+          </ng-container>
+
+          <ng-container *ngIf="editCacheForPackageProperties[package.id]?.edit">
+            <nz-input-number [nzStep]="0.01" [(ngModel)]="editCacheForPackageProperties[package.id].data.bullnose"
+              [nzMin]="0" style="width: 4.17rem;float: right;"></nz-input-number>
+          </ng-container>
+        </td>
+
+        <td>
+          {{
+          (calculateSummationOfArray(ml_total[j]) * package.bullnose) | number: '1.2-2'
+        }}
+        </td>
+
+      </ng-container>
+
+      <td *ngIf="editable" class="unprintable">
+        <div class="editable-row-operations">
+          <ng-container *ngIf="!editCacheForPackageProperties[package.id]?.edit">
+            <a (click)="startEditForPackageProperties(package.id)"><i nz-icon [type]="'edit'" [theme]="'fill'"></i></a>
+          </ng-container>
+          <ng-container *ngIf="editCacheForPackageProperties[package.id]?.edit">
+            <a (click)="saveEditForPackageProperties(package.id)">Save</a>
+            <nz-divider nzType="vertical"></nz-divider>
+            <nz-popconfirm [nzTitle]="'Sure to cancel?'" (nzOnConfirm)="cancelEditForPackageProperties(package.id)">
+              <a nz-popconfirm>Cancel</a>
+            </nz-popconfirm>
+          </ng-container>
+        </div>
+      </td>
+
+    </tr>
+
+    <tr>
+      <td [attr.colspan]="mode === 'delivery'? 8: 6">Groove</td>
+
+      <td colspan="2"><b>
+          {{
+        calculateSummationOfArray(ml_total[j]) | number: '1.2-2'
+      }}</b>
+      </td>
+
+      <ng-container *ngIf="!hidePricing">
+
+        <td colspan="1">
+          <ng-container *ngIf="!editCacheForPackageProperties[package.id]?.edit">
+            {{
+            package.groove | number: '1.2-2'
+          }}
+          </ng-container>
+
+          <ng-container *ngIf="editCacheForPackageProperties[package.id]?.edit">
+            <nz-input-number [nzStep]="0.01" [(ngModel)]="editCacheForPackageProperties[package.id].data.groove"
+              [nzMin]="0" style="width: 4.17rem;float: right;"></nz-input-number>
+          </ng-container>
+        </td>
+
+        <td>
+          {{
+          (calculateSummationOfArray(ml_total[j]) * package.groove) | number: '1.2-2'
+        }}
+        </td>
+
+      </ng-container>
+
+      <td *ngIf="editable" class="unprintable">
+        <div class="editable-row-operations">
+          <ng-container *ngIf="!editCacheForPackageProperties[package.id]?.edit">
+            <a (click)="startEditForPackageProperties(package.id)"><i nz-icon [type]="'edit'" [theme]="'fill'"></i></a>
+          </ng-container>
+          <ng-container *ngIf="editCacheForPackageProperties[package.id]?.edit">
+            <a (click)="saveEditForPackageProperties(package.id)">Save</a>
+            <nz-divider nzType="vertical"></nz-divider>
+            <nz-popconfirm [nzTitle]="'Sure to cancel?'" (nzOnConfirm)="cancelEditForPackageProperties(package.id)">
+              <a nz-popconfirm>Cancel</a>
+            </nz-popconfirm>
+          </ng-container>
+        </div>
+      </td>
+
+    </tr>
+
+    <tr>
+      <td [attr.colspan]="mode === 'delivery'? 9: 7">M2</td>
+
+      <td><b>
+          {{
+        calculateSummationOfArray(m2_total[j]) | number: '1.2-2'
+      }}</b>
+      </td>
+
+      <ng-container *ngIf="!hidePricing">
+
+        <td colspan="1">
+          <ng-container *ngIf="!editCacheForPackageProperties[package.id]?.edit">
+            {{
+            package.unit_price
+          }}
+          </ng-container>
+
+          <ng-container *ngIf="editCacheForPackageProperties[package.id]?.edit">
+            <nz-input-number [nzStep]="0.01" [(ngModel)]="editCacheForPackageProperties[package.id].data.unit_price"
+              [nzMin]="0" style="width: 4.17rem;float: right;"></nz-input-number>
+          </ng-container>
+        </td>
+
+        <td>
+          {{
+          (calculateSummationOfArray(m2_total[j]) * package.unit_price) | number: '1.2-2'
+        }}
+        </td>
+
+      </ng-container>
+
+      <td *ngIf="editable" class="unprintable">
+        <div class="editable-row-operations">
+          <ng-container *ngIf="!editCacheForPackageProperties[package.id]?.edit">
+            <a (click)="startEditForPackageProperties(package.id)"><i nz-icon [type]="'edit'" [theme]="'fill'"></i></a>
+          </ng-container>
+          <ng-container *ngIf="editCacheForPackageProperties[package.id]?.edit">
+            <a (click)="saveEditForPackageProperties(package.id)">Save</a>
+            <nz-divider nzType="vertical"></nz-divider>
+            <nz-popconfirm [nzTitle]="'Sure to cancel?'" (nzOnConfirm)="cancelEditForPackageProperties(package.id)">
+              <a nz-popconfirm>Cancel</a>
+            </nz-popconfirm>
+          </ng-container>
+        </div>
+      </td>
+
+    </tr>
+
+    <ng-container *ngIf="!hidePricing">
+
+      <tr>
+        <th [attr.colspan]="mode === 'delivery'? 10: 8">Sub Total</th>
+        <td colspan="2">
+          <span *ngIf="sub_totals" [innerHTML]="(sub_totals[j] ? sub_totals[j]: 0.00) | number: '1.2-2'"
+            class="float-right emphasis"></span>
+        </td>
+      </tr>
+
+      <!--
+
+        total before vat, vat, after vat
+
+       -->
+      <tr *ngIf="isLastPackage">
+        <th [attr.colspan]="mode === 'delivery'? 11: 8" class="emphasis">Total Before VAT</th>
+        <td colspan="2">
+          <span [innerHTML]="total | number: '1.2-2'" class="emphasis float-right"></span>
+        </td>
+      </tr>
+      <tr *ngIf="isLastPackage">
+        <th [attr.colspan]="mode === 'delivery'? 11: 8" class="emphasis">VAT</th>
+        <td colspan="2">
+          <span [innerHTML]="VAT | number: '1.2-2'" class="emphasis float-right"></span>
+        </td>
+      </tr>
+      <tr *ngIf="isLastPackage">
+        <th [attr.colspan]="mode === 'delivery'? 11: 8" class="emphasis">Total</th>
+        <td colspan="2">
+          <span [innerHTML]="totalWithVAT | number: '1.2-2'" class="emphasis float-right"></span>
+        </td>
+      </tr>
+
+    </ng-container>
+
+  </tbody>
+</nz-table>
+
+<br>
+<br>
+<br>
+<br>
+
+<!-- Selected Items will be displayed before sending -->
+
+<div *ngIf="prepared_toproduction_packages.length && (mode === 'delivery')">
+  <h1 class="fg-app-color">Selected Goods Preview</h1>
+  <nz-table *ngFor="let package of prepared_toproduction_packages; let j = index; last as isLastPackage"
+    [nzShowPagination]="false" [nzFrontPagination]="false" nzSize="small" [nzBordered]="true"
+    [nzData]="prepared_toproduction_packages">
+    <thead>
+      <tr>
+        <th>{{ package.name }}</th>
+        <th>Length</th>
+        <th>Width</th>
+        <th>Thickness</th>
+        <th>Pieces</th>
+        <th>Remark</th>
+        <th>ML</th>
+        <th>M2</th>
+        <th *ngIf="submode !== 'factory-loader-detail'">Unit Price</th>
+      </tr>
+    </thead>
+    <tbody>
+      <ng-container
+        *ngFor="let data of filterProformaItemsWithPackageId(package.id, prepared_toproduction_items); let i = index;">
+        <tr>
+          <td>{{ i + 1 }}</td>
+          <td>
+            {{data.length | number: '1.2-2'}}
+          </td>
+          <td>
+            {{data.width | number: '1.2-2'}}
+          </td>
+          <td>
+            {{data.thick | number: '1.2-2'}}
+          </td>
+          <td>
+            {{data.pcs | number: '1.2-2'}}
+          </td>
+          <td>
+            {{data.remark}}
+          </td>
+
+          <td [innerHTML]="prepared_toproduction_ml_total[j][i] | number: '1.2-2'"></td>
+
+          <td [innerHTML]="prepared_toproduction_m2_total[j][i] | number: '1.2-2'"></td>
+
+          <td></td>
+
+        </tr>
+      </ng-container>
+
+      <ng-container *ngIf="submode !== 'factory-loader-detail'">
+
+        <tr>
+          <td colspan="8">Bullnose</td>
+          <td colspan="1">
+            {{
+            package.bullnose | number: '1.2-2'
+          }}
+          </td>
+        </tr>
+
+        <tr>
+          <td colspan="8">Groove</td>
+
+          <td colspan="1">
+            {{
+            package.groove | number: '1.2-2'
+          }}
+          </td>
+        </tr>
+
+        <tr>
+          <td colspan="8">M2</td>
+
+          <td colspan="1">
+            {{
+            package.unit_price | number: '1.2-2'
+          }}
+          </td>
+        </tr>
+
+        <tr>
+          <th colspan="8">Sub Total</th>
+          <td colspan="2">
+            <span [innerHTML]="prepared_toproduction_sub_totals[j] | number: '1.2-2'" class="float-right"></span>
+          </td>
+        </tr>
+        <!--
+
+    total before vat, vat, after vat
+
+    -->
+        <tr *ngIf="isLastPackage">
+          <th colspan="8" class="emphasis">Total Before VAT</th>
+          <td colspan="2">
+            <span [innerHTML]="prepared_toproduction_total | number: '1.2-2'" class="emphasis float-right"></span>
+          </td>
+        </tr>
+        <tr *ngIf="isLastPackage">
+          <th colspan="8" class="emphasis">VAT</th>
+          <td colspan="2">
+            <span [innerHTML]="prepared_toproduction_VAT | number: '1.2-2'" class="emphasis float-right"></span>
+          </td>
+        </tr>
+        <tr *ngIf="isLastPackage">
+          <th colspan="8" class="emphasis">Total</th>
+          <td colspan="2">
+            <span [innerHTML]="prepared_toproduction_totalWithVAT | number: '1.2-2'"
+              class="emphasis float-right"></span>
+          </td>
+        </tr>
+
+
+      </ng-container>
+
+    </tbody>
+  </nz-table>
+
+</div>
+
+<p>
+  Note: <b> {{ order?.note }} </b>
+</p>
+
+<div class="unprintable">
+
+  <ng-container *ngIf="mode === 'delivery' && submode !== 'factory-loader-detail'; else factoryTemplate">
+    <div>
+      <a routerLink='/sales/production/{{ this.order.id }}'>View History</a>
+      <br>
+      <br>
+      <label>Delivery Days Count (In Days): </label>
+      <nz-input-number #dateCount></nz-input-number>
+      <nz-badge class="ml-3" [nzCount]="selected_items.length" nzShowZero [nzStyle]="{backgroundColor: '#52c41a'}">
+        <button nz-button nzType="primary" (click)="onSendSelectedToProduction(dateCount.value)"
+          [disabled]="(selected_items.length === 0 || !dateCount.value)">Send
+          Selected To
+          Production
+        </button>
+      </nz-badge>
+    </div>
+  </ng-container>
+
+  <ng-template #factoryTemplate>
+    <div *ngIf="submode === 'factory-loader-detail'">
+      <br>
+      <br>
+      <label>Issued By: </label>
+      <input #issuedBy type="text" nz-input style="width:20%;" placeholder="Issued By">
+      <label>Approved By: </label>
+      <input #approvedBy type="text" nz-input style="width:20%;" placeholder="Approved By">
+      <label>Recieved By: </label>
+      <input #recievedBy type="text" nz-input style="width:20%;" placeholder="Recieved By">
+      <div>
+        <br>
+        <label>Driver Plate No.: </label>
+        <input #plateNo type="text" nz-input style="width:20%;" placeholder="Driver Plate No">
+        <label>Driver ID No: </label>
+        <input #idNo type="text" nz-input style="width:20%;" placeholder="Driver ID No">
+        <label>Driver FullName: </label>
+        <input #fullname type="text" nz-input style="width:20%;" placeholder="Driver Full Name">
+        <button nz-button nzType="primary" (click)="onConfirmDeliveryOnSelected(issuedBy.value, approvedBy.value, recievedBy.value,
+        plateNo.value, idNo.value, fullname.value)"
+          [disabled]="(selected_items.length === 0 || !issuedBy.value || !approvedBy.value || !recievedBy.value || !plateNo.value || !idNo.value || !fullname.value)">
+          Confirm Delivery
+        </button>
+      </div>
+    </div>
+  </ng-template>
+
+
+  <div *ngIf="(mode === 'proforma')" nz-row nzType="flex" nzJustify="left" class="my-5">
+    <h2>
+      <b>Convert To Delivery Order</b><small></small>
+    </h2>
+    <nz-input-group nzCompact>
+      <span>Delivery Date Count(In Days)</span>
+      <nz-input-number #numberOfDays style="width: 10%;" [nzStep]="0.01" [nzMin]="1"></nz-input-number>
+      <button nz-button nzType="primary" (click)="convertToDeliveryOrder(numberOfDays.value)"
+        [disabled]="!numberOfDays.value">Convert
+        To Delivery Order
+      </button>
+    </nz-input-group>
+
+  </div>
+
+  <div *ngIf="editable">
+
+    <div nz-row nzType="flex" class="my-5">
+      <h2>
+        <b>Add a New Good</b><small></small>
+      </h2>
+      <nz-input-group nzCompact>
+        <nz-select #productID style="width: 15%;">
+          <nz-option *ngFor="let product of products" [nzLabel]="product.name" [nzValue]="product.id"></nz-option>
+        </nz-select>
+        <input #bullnose type="number" step="0.01" nz-input style="width:10%;" placeholder="Bullnose">
+        <input #groove type="number" step="0.01" nz-input style="width:10%;" placeholder="Groove">
+        <input #unitPrice type="number" step="0.01" nz-input style="width:10%;" placeholder="Unit Price">
+        <button nz-button nzType="primary"
+          (click)="addNewPackage(productID.value, bullnose.value, groove.value, unitPrice.value)">Add
+        </button>
+      </nz-input-group>
+
+    </div>
+
+    <div nz-row nzType="flex" class="my-5">
+      <h2>
+        <b>Add an Item</b>
+      </h2>
+      <nz-input-group nzCompact>
+        <nz-select #packageID style="width: 15%;">
+          <nz-option *ngFor="let package of packages" [nzLabel]="package.name" [nzValue]="package.id"></nz-option>
+        </nz-select>
+        <input #length type="number" step="0.01" nz-input style="width:10%;" placeholder="Length">
+        <input #width type="number" step="0.01" nz-input style="width:10%;" placeholder="Width">
+        <input #thick type="number" step="0.01" nz-input style="width:10%;" placeholder="Thickness">
+        <input #pcs type="number" nz-input style="width:10%;" placeholder="Pieces">
+        <input #remark type="text" nz-input style="width:20%;" placeholder="Remark">
+        <button [disabled]="!packageID.value" nz-button nzType="primary" class
+          (click)="addNewItem(packageID.value, length.value, width.value, thick.value, pcs.value, remark.value)">
+          Add
+        </button>
+      </nz-input-group>
+
+    </div>
+  </div>
+</div>

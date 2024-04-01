@@ -1,0 +1,107 @@
+<div nz-row nzType="flex" nzJustify="center">
+  <div nz-col nzSpan="20">
+    <h1 class="mt-5 align-center">In Stock Products</h1>
+    <h4 class="align-center">Date [ {{ currentDate | date: 'mediumDate' }} ]</h4>
+  </div>
+</div>
+
+<nz-input-group nzCompact class="align-center">
+  <!-- loading indicator -->
+  <nz-spin [nzSpinning]="isLoading" [nzSize]="'large'">
+    <div class="loading-indicator"></div>
+  </nz-spin>
+  <nz-range-picker class="my-3" [nzFormat]="'yyyy-MM-dd'" [(ngModel)]="this.dateRange"></nz-range-picker>
+  <br/>
+  <input [(ngModel)]="filterObject.company_name" type="text" nz-input style="width:15%;" placeholder="Customer Name"/>
+  <nz-select style="width: 15%;" [(ngModel)]="filterObject.delivery_no">
+    <nz-option [nzLabel]="'Choose Delivery No'" [nzValue]="''"></nz-option>
+    <nz-option *ngFor="let deliveryNo of deliveryNos" [nzLabel]="deliveryNo.order_no" [nzValue]="deliveryNo.id">
+    </nz-option>
+  </nz-select>
+  <nz-select style="width: 15%;" [(ngModel)]="filterObject.name">
+    <nz-option [nzLabel]="'Choose Product Type'" [nzValue]="''"></nz-option>
+    <nz-option *ngFor="let product of products" [nzLabel]="product.name" [nzValue]="product.name"></nz-option>
+  </nz-select>
+  <input [(ngModel)]="filterObject.length" type="number" step="0.01" nz-input style="width:10%;" placeholder="Length">
+  <input [(ngModel)]="filterObject.width" type="number" step="0.01" nz-input style="width:10%;" placeholder="Width">
+  <input [(ngModel)]="filterObject.thick" type="number" step="0.01" nz-input style="width:10%;" placeholder="Thickness">
+  <button nz-button nzType="primary"
+          (click)="onFilter()">Search
+  </button>
+</nz-input-group>
+
+
+<div nz-row nzType="flex" nzJustify="center">
+  <div nz-col *ngIf="stocks?.length" class="align-center">
+
+    <div nz-row nzType="flex" nzJustify="center">
+      <button class="my-3" nz-button [nzType]="'primary'" [disabled]="!stocks.length"
+              (click)="exportAsXLSX(stocks)">Export to Excel <i nz-icon [type]="'file-excel'" [theme]="'fill'"></i>
+      </button>
+    </div>
+
+    <nz-table #stocksData [nzData]="stocks" [nzFrontPagination]="false" [nzShowPagination]="false" nzSize="small">
+      <thead (nzSortChange)="sort($event)">
+      <tr>
+        <th>Delivery No.</th>
+        <th>Customer</th>
+        <th>Product Name</th>
+        <th nzShowSort nzSortKey="length">Length</th>
+        <th nzShowSort nzSortKey="width">Width</th>
+        <th nzShowSort nzSortKey="thick">Thick</th>
+        <th>Pcs Original</th>
+        <th>Pcs Completed</th>
+        <th>Pcs Balance</th>
+        <th>Price (in Br) for Original Pcs</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let stockItem of stocksData.data; let i = index">
+        <td>
+          {{ stockItem.order_no || "none" | addDToDeliveryNo }}
+        </td>
+        <td>
+          {{ stockItem.company_name || "Without Order" }}
+        </td>
+        <td>
+          {{ stockItem.name }}
+        </td>
+        <td>
+          {{ stockItem.length }}
+        </td>
+        <td>
+          {{ stockItem.width }}
+        </td>
+        <td>
+          {{ stockItem.thick }}
+        </td>
+        <td>
+          {{ stockItem.pcs }}
+        </td>
+        <td>
+          {{ stockItem.loaded_pcs }}
+        </td>
+        <td>
+          {{ stockItem.pcs - stockItem.loaded_pcs }}
+        </td>
+        <td *ngIf="stockPrices">
+          {{ stockPrices[stockItem.id] | number: '1.2-2' }}
+        </td>
+      </tr>
+      </tbody>
+    </nz-table>
+
+    <!-- simple pagination with next & previous -->
+    <nz-button-group class="block my-3">
+      <button nz-button nzType="primary" (click)="onPaginatePrevious()"
+              [disabled]="currentPaginationIndex === 1">
+        <i nz-icon type="left"></i>Previous
+      </button>
+      <button nz-button nzType="primary" (click)="onPaginateNext()" [disabled]="
+          currentPaginationIndex === lastPaginationIndex
+        ">
+        Next<i nz-icon type="right"></i>
+      </button>
+    </nz-button-group>
+  </div>
+</div>

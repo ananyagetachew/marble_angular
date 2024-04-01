@@ -1,0 +1,19 @@
+<div nz-row nzType="flex" nzJustify="center">
+  <div nz-col nzSpan="10" class="mb-5" style="width: 100%; height: 100%; margin: auto;">
+    <form nz-form>
+      <nz-spin [nzSpinning]="isLoading" [nzSize]="'small'">
+
+        <nz-form-item style="display:flex; justify-content: center;margin-top: 10rem;">
+          <nz-form-control [nzSpan]="6">
+            <input nz-input name="username" type="username" id="username" placeholder="username" [(ngModel)]="username">
+            <input nz-input name="password" autocomplete="" type="password" id="password" placeholder="Password" [(ngModel)]="password">
+            <!-- [hidden]="!message" was added for support on Microsoft Edge Browser because it displayed 'null' when initializing without message data -->
+            <div style="color: red;" [innerHTML]="message" [hidden]="!message"></div>
+            <button nz-button nzType="primary" (click)="OnSubmit()">Log In</button>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-spin>
+
+    </form>
+  </div>
+</div>

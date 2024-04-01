@@ -1,0 +1,34 @@
+<!--  aggregate status-->
+<div nz-row nzType="flex" nzJustify="center">
+  <!-- loading indicator -->
+  <nz-spin [nzSpinning]="isLoading" [nzSize]="'large'" class="my-3"></nz-spin>
+  <div nz-col *ngIf="stockAggregateData" class="align-center my-5">
+    <p *ngIf="mode === 'finance'" class="emphasis">Total of ~{{ totalPrice | number: '1.2-2' }} (in Br)</p>
+    <nz-table [nzData]="['_']" [nzFrontPagination]="false" [nzShowPagination]="false" nzSize="small">
+      <thead>
+      <tr>
+        <th>Product Name</th>
+        <th>M2</th>
+        <th>Pcs</th>
+        <th *ngIf="mode === 'finance'">Price (in Br)</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let status of stockAggregateData | keyvalue">
+        <td>
+          {{ status.key }}
+        </td>
+        <td>
+          {{ status.value.m2 | number : '1.2-2' }}
+        </td>
+        <td>
+          {{ status.value.pcs }}
+        </td>
+        <td *ngIf="mode === 'finance'">
+          ~ {{ status.value.price | number: '1.2-2' }}
+        </td>
+      </tr>
+      </tbody>
+    </nz-table>
+  </div>
+</div>

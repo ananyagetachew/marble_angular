@@ -1,0 +1,76 @@
+<div nz-row nzType="flex" nzJustify="center" class="my-3">
+  <div nz-col nzSpan="20">
+    <h1 class="align-center">Firdows General Import, Export and Commission Agent PLC</h1>
+    <h4 class="align-center">Date [ {{ currentDate | date: 'mediumDate' }} ]</h4>
+  </div>
+  <div class="unprintable" nz-row nzType="flex" nzJustify="center">
+    <nz-radio-group [(ngModel)]="currentReportType" (ngModelChange)="updateOrderData()" [nzButtonStyle]="'solid'">
+      <label nz-radio-button [nzValue]="reportTypes[0]" title="ከፋብሪካ፤ተጭነው፤የወጡ!">Delivered</label>
+      <label nz-radio-button [nzValue]="reportTypes[3]" title="Stocks">Stocks</label>
+      <label nz-radio-button [nzValue]="reportTypes[1]" title="ወደ production ያልተላኩ!">Delivery</label>
+      <label nz-radio-button [nzValue]="reportTypes[2]" title="production ላይ ያሉ!">Production</label>
+    </nz-radio-group>
+    <div nz-col nzSpan="22">
+      <p class="align-center mt-1">Note! all prices are before vat</p>
+
+      <div nz-row nzType="flex" nzJustify="center">
+        <button nz-button [nzType]="'primary'" [disabled]="!aggregatedOrderData"
+          (click)="exportAsXLSX(aggregatedOrderData)">Export to Excel <i nz-icon [type]="'file-excel'"
+            [theme]="'fill'"></i>
+        </button>
+        <button nz-button nzType="primary" class="ml-3" onclick="window.print()">Print</button>
+      </div>
+
+    </div>
+    <nz-input-group nzCompact class="mt-1 align-center">
+      <input #company_name type="text" nz-input style="width:15%;" placeholder="Customer Name" />
+      <nz-select #deliveryNo style="width: 15%;" [(ngModel)]="deliveryNosDropDown">
+        <nz-option [nzLabel]="'Choose Delivery No'" [nzValue]="''"></nz-option>
+        <nz-option *ngFor="let deliveryNo of deliveryNos" [nzLabel]="deliveryNo.order_no"
+          [nzValue]="deliveryNo.order_no">
+        </nz-option>
+      </nz-select>
+      <nz-range-picker [nzFormat]="'yyyy-MM-dd'" [(ngModel)]="this.dateRange"></nz-range-picker>
+      <button nz-button nzType="primary" (click)="updateOrderData(company_name.value)">Search</button>
+    </nz-input-group>
+  </div>
+
+  <div nz-col nzSpan="20">
+    <app-stock-aggregate *ngIf="currentReportType === 'stocks'" mode="finance"></app-stock-aggregate>
+
+    <!--  aggregate status-->
+    <div nz-row nzType="flex" nzJustify="center" *ngIf="currentReportType !== 'stocks'">
+      <!-- loading indicator -->
+      <nz-spin [nzSpinning]="isLoading" [nzSize]="'large'" class="mt-1"></nz-spin>
+      <div nz-col *ngIf="aggregatedOrderData" class="align-center mt-1">
+        <p class="emphasis">Total of: {{ totalPrice | number: '1.2-2' }} (in Br)</p>
+        <p class="emphasis" *ngIf="company_name.value != ''">Customer Filter: {{ company_name.value }}</p>
+        <p class="emphasis" *ngIf="deliveryNosDropDown != ''">Delivery No Filter: {{ deliveryNosDropDown }}</p>
+        <nz-table [nzData]="['_']" [nzFrontPagination]="false" [nzShowPagination]="false" nzSize="small">
+          <thead>
+            <tr>
+              <th>Delivery No</th>
+              <th>Customer</th>
+              <th>Total Price (Before Vat in Br)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="clickable" *ngFor="let deliveryData of aggregatedOrderData | keyvalue"
+              (click)="onRowClick(deliveryData.value.id)">
+              <td>
+                {{ deliveryData.key | addDToDeliveryNo }}
+              </td>
+              <td>
+                {{ deliveryData.value.company_name }}
+              </td>
+              <td>
+                {{ deliveryData.value.price | number: '1.2-2' }}
+              </td>
+            </tr>
+          </tbody>
+        </nz-table>
+      </div>
+    </div>
+  </div>
+
+</div>

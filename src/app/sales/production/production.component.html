@@ -1,0 +1,15 @@
+<div nz-row nzType="flex" nzJustify="center">
+  <div nz-col nzSpan="20">
+
+    <div *ngFor="let order of orders" class="mt-3">
+
+      <app-order-detail-table
+       [mode]="'production'"
+       [editable]="false"
+       [inputOrder]="order" [inputPackages]="filterPackagesWithOrderId(order.id)"
+        [inputItems]="items"></app-order-detail-table>
+
+    </div>
+
+  </div>
+</div>

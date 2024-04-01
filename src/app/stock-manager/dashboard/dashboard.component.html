@@ -1,0 +1,29 @@
+<div nz-row nzType="flex" nzJustify="center" class="my-3">
+  <h1 class="align-center">Add To Stock</h1>
+  <nz-input-group nzCompact>
+    For Delivery
+    <nz-select #deliveryNo style="width: 15%;">
+      <nz-option *ngFor="let deliveryNo of deliveryNos" [nzLabel]="deliveryNo.order_no" [nzValue]="deliveryNo.id">
+      </nz-option>
+    </nz-select>
+    Name
+    <nz-select #productID style="width: 15%;">
+      <nz-option *ngFor="let product of products" [nzLabel]="product.name" [nzValue]="product.id"></nz-option>
+    </nz-select>
+    Length
+    <nz-input-number #length nzStep="0.01" nz-input style="width:10%;"></nz-input-number>
+    Width
+    <nz-input-number #width nzStep="0.01" nz-input style="width:10%;"></nz-input-number>
+    Thickness
+    <nz-input-number #thick nzStep="0.01" nz-input style="width:10%;"></nz-input-number>
+    Pieces
+    <nz-input-number #pcs nz-input nzStep="0.01" style="width:10%;" [nzMin]="0"></nz-input-number>
+    <button [disabled]=" !( productID.value && length.value && width.value && thick.value && pcs.value )" nz-button
+      nzType="primary"
+      (click)=" addProductToStock( deliveryNo.value, productID.value, length.value, width.value, thick.value, pcs.value )">Add
+    </button>
+  </nz-input-group>
+
+  <app-stock-aggregate></app-stock-aggregate>
+
+</div>
